@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=repo_service_development
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+
+services:
+rabbitmq3:
+    image: rabbitmq:3-management
+    enviroment:
+    RABBITMQ_ERLANG_COOKIE: 'secret cookie here'
+    volumes: ./db-data:/var/lib/rabbitmq
+    ports:
+      -15672:15672
+
+
+  api:
+    build: ./my_api
+    container_name: my_api
+    volumes:
+      - .:/my_api
+    ports:
+      - 3000:3000
+    links:
+      - repo_service
+
+  repo_service:
+    build: ./repo_service
+    container_name: repo_service 
+    volumes:
+      - .:/my_repo
+    ports:
+      - 3001:3001
+    links:
+      - db
